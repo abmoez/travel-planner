@@ -3,22 +3,26 @@ package com.travelplanner.config;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 
-import java.util.List;
+import jakarta.annotation.PostConstruct;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Configuration
 public class BlockedCountriesConfig {
 
-    private final Set<String> blockedCountries;
+    @Value("${app.blocked-countries}")
+    private String blockedCountriesString;
 
-    public BlockedCountriesConfig(
-            @Value("${app.blocked-countries:}") List<String> blockedCountries) {
-        this.blockedCountries = blockedCountries.stream()
-                .map(String::trim)
-                .filter(s -> !s.isEmpty())
-                .map(String::toLowerCase)
-                .collect(Collectors.toUnmodifiableSet());
+    private Set<String> blockedCountries;
+
+    @PostConstruct
+    public void init() {
+        this.blockedCountries = Stream.of(this.blockedCountriesString.split(","))
+            .map(String::trim)
+            .filter(s -> !s.isEmpty())
+            .map(String::toLowerCase)
+            .collect(Collectors.toSet());   
     }
 
     public boolean isBlocked(String countryName) {

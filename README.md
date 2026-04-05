@@ -162,6 +162,15 @@ seed.destinations.pre-populate=true
 
 Set this to `false` if you want to start with an empty catalog and add destinations manually through the admin dashboard.
 
+### Blocked Destinations
+
+Blocking destinations is available by the `app.blocked-countries` property in `application.properties`:
+
+```properties
+# Add blocked destinations
+app.blocked-countries=add,here,any,countries,to,be,blocked
+```
+
 ### Data & API
 - REST Countries API integration with field filtering (`name`, `capital`, `region`, `subregion`, `population`, `currencies`, `flags`, `latlng`)
 - Geographic coordinates (latitude/longitude) for map visualization
