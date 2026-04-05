@@ -88,9 +88,9 @@ Card-based grid of destinations with flags, region tags, and quick info. Support
 
 ### User Dashboard — Wishlist View
 
-Card-based grid of wishlisted destinations with flags, region tags, and quick info. Supports a click to destination full page.
+Card-based grid of wishlisted destinations with flags, region tags, and quick info. Supports a click to destination full page. Wishlisted Destinations get real-time highlighted in red on map.
 
-![List View](screenshots/user_grid_wantToVisit.png)
+![List View](screenshots\user_map_wantToVisit.png)
 
 ### Destination Detail
 
