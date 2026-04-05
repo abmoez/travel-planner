@@ -154,7 +154,7 @@ export class DestinationMapComponent implements AfterViewInit, OnChanges, OnDest
       scrollWheelZoom: interactive
     });
 
-    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png', {
       attribution: '&copy; <a href="https://carto.com/">CARTO</a>',
       noWrap: true,
       maxZoom: 18

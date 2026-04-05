@@ -67,6 +67,11 @@ public class DataSeeder implements CommandLineRunner {
             return;
         }
 
+        if (destinationRepository.count() > 0) {
+            log.info("Destinations already exist, skipping seed");
+            return;
+        }
+
         try (InputStream is = new ClassPathResource("seed-destinations.json").getInputStream()) {
             List<CountryApiResponse> countries = objectMapper.readValue(
                     is, new TypeReference<List<CountryApiResponse>>() {});

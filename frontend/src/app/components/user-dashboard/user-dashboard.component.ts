@@ -101,6 +101,15 @@ import { DestinationMapComponent } from '../destination-map/destination-map.comp
               <div class="spinner-ring"></div>
               <p>Loading destinations...</p>
             </div>
+          } @else if (loadError()) {
+            <div class="empty-state">
+              <span class="material-icons">cloud_off</span>
+              <h3>Failed to load destinations</h3>
+              <p>Something went wrong. Please try again or re-login if the issue persists.</p>
+              <button class="retry-btn" (click)="loadDestinations()">
+                <span class="material-icons" style="font-size:18px">refresh</span> Retry
+              </button>
+            </div>
           } @else if (destinations().length === 0 && !loading()) {
             <div class="empty-state">
               <span class="material-icons">flight</span>
@@ -544,6 +553,24 @@ import { DestinationMapComponent } from '../destination-map/destination-map.comp
       color: var(--gray-600);
       margin-bottom: .25rem;
     }
+    .retry-btn {
+      margin-top: 1rem;
+      display: inline-flex;
+      align-items: center;
+      gap: .35rem;
+      padding: .6rem 1.25rem;
+      border: 1px solid var(--primary);
+      background: var(--primary);
+      color: white;
+      border-radius: 50px;
+      font-size: .88rem;
+      font-weight: 600;
+      transition: all .2s;
+    }
+    .retry-btn:hover {
+      opacity: .9;
+      transform: translateY(-1px);
+    }
 
     @keyframes spin { to { transform: rotate(360deg); } }
 
@@ -560,7 +587,8 @@ export class UserDashboardComponent implements OnInit {
   destinations = signal<Destination[]>([]);
   mapDestinations = signal<Destination[]>([]);
   wishlist = signal<Destination[]>([]);
-  loading = signal(false);
+  loading = signal(true);
+  loadError = signal(false);
   currentPage = signal(0);
   totalPages = signal(0);
   totalDestinations = signal(0);
@@ -598,6 +626,7 @@ export class UserDashboardComponent implements OnInit {
 
   loadDestinations(): void {
     this.loading.set(true);
+    this.loadError.set(false);
     this.destService.getApprovedDestinations(this.currentPage(), 12, this.searchTerm || undefined).subscribe({
       next: res => {
         this.destinations.set(res.content);
@@ -606,7 +635,10 @@ export class UserDashboardComponent implements OnInit {
         this.isLastPage.set(res.last);
         this.loading.set(false);
       },
-      error: () => this.loading.set(false)
+      error: () => {
+        this.loading.set(false);
+        this.loadError.set(true);
+      }
     });
   }
 
@@ -618,6 +650,10 @@ export class UserDashboardComponent implements OnInit {
         if (this.totalDestinations() === 0) {
           this.totalDestinations.set(res.totalElements);
         }
+      },
+      error: () => {
+        this.loadError.set(true);
+        this.loading.set(false);
       }
     });
   }
