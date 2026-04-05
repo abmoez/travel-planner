@@ -157,10 +157,18 @@ input, select, textarea { font-family: inherit; }
   flex-shrink: 0;
   transition: transform .15s ease;
 }
-.country-marker:hover .marker-pin {
+.country-marker:hover .marker-pin,
+.marker-highlighted .marker-pin {
   transform: scale(1.35);
   background: #a5b4fc;
   box-shadow: 0 0 14px rgba(165,180,252,.7), 0 0 0 3px rgba(165,180,252,.35);
+}
+.marker-highlighted .marker-label {
+  color: #fff;
+  text-shadow:
+    0 0 6px rgba(99,102,241,.8),
+    0 0 4px rgba(0,0,0,.9),
+    0 1px 3px rgba(0,0,0,.8);
 }
 .marker-label {
   display: block;

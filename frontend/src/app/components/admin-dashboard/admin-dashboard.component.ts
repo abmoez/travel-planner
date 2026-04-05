@@ -2,11 +2,12 @@ import { Component, signal, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { DestinationService } from '../../services/destination.service';
 import { CountryApiResponse, Destination } from '../../models/destination.model';
+import { DestinationMapComponent } from '../destination-map/destination-map.component';
 
 @Component({
   selector: 'app-admin-dashboard',
   standalone: true,
-  imports: [FormsModule],
+  imports: [FormsModule, DestinationMapComponent],
   template: `
     <div class="dashboard">
       <div class="container">
@@ -29,14 +30,27 @@ import { CountryApiResponse, Destination } from '../../models/destination.model'
               (keyup.enter)="searchCountries()"
             />
             <button class="btn btn-primary" (click)="searchCountries()" [disabled]="fetchingSearch()">
-              Search
+              @if (fetchingSearch()) {
+                <span class="btn-spinner"></span> Searching...
+              } @else {
+                <span class="material-icons" style="font-size:16px">search</span> Search
+              }
             </button>
             <button class="btn btn-secondary" (click)="fetchAll()" [disabled]="fetchingAll()">
-              @if (fetchingAll()) { Loading... } @else { Fetch All }
+              @if (fetchingAll()) {
+                <span class="btn-spinner"></span> Loading...
+              } @else {
+                Fetch All
+              }
             </button>
           </div>
 
-          @if (apiCountries().length > 0) {
+          @if (fetchingSearch() || fetchingAll()) {
+            <div class="results-loading">
+              <div class="spinner-ring"></div>
+              <p>{{ fetchingSearch() ? 'Searching countries...' : 'Fetching all countries...' }}</p>
+            </div>
+          } @else if (apiCountries().length > 0) {
             <div class="bulk-bar">
               <span>{{ selectedCountries().length }} selected</span>
               <button class="btn btn-accent" (click)="bulkAdd()" [disabled]="selectedCountries().length === 0">
@@ -64,6 +78,25 @@ import { CountryApiResponse, Destination } from '../../models/destination.model'
                   </button>
                 </div>
               }
+            </div>
+          }
+        </section>
+
+        <!-- Map Overview -->
+        <section class="card">
+          <h2>
+            <span class="material-icons">map</span>
+            Map Overview
+          </h2>
+          @if (destinations().length > 0) {
+            <app-destination-map
+              [destinations]="destinations()"
+              [adminMode]="true"
+            />
+          } @else {
+            <div class="empty-msg map-empty">
+              <span class="material-icons">map</span>
+              <p>Add destinations to see them on the map</p>
             </div>
           }
         </section>
@@ -179,6 +212,39 @@ import { CountryApiResponse, Destination } from '../../models/destination.model'
     .btn-danger:hover { background: #dc2626; }
     .btn:disabled { opacity: .6; cursor: not-allowed; }
 
+    .btn-spinner {
+      width: 14px;
+      height: 14px;
+      border: 2px solid rgba(255,255,255,.3);
+      border-top-color: currentColor;
+      border-radius: 50%;
+      animation: spin .6s linear infinite;
+      display: inline-block;
+      flex-shrink: 0;
+    }
+    .btn-secondary .btn-spinner {
+      border-color: rgba(0,0,0,.15);
+      border-top-color: var(--gray-600);
+    }
+
+    .results-loading {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 3rem 2rem;
+      color: var(--gray-400);
+      gap: .75rem;
+    }
+    .spinner-ring {
+      width: 36px;
+      height: 36px;
+      border: 3px solid rgba(99,102,241,.2);
+      border-top-color: var(--primary);
+      border-radius: 50%;
+      animation: spin .7s linear infinite;
+    }
+
     .bulk-bar {
       display: flex;
       justify-content: space-between;
@@ -260,6 +326,17 @@ import { CountryApiResponse, Destination } from '../../models/destination.model'
       color: var(--gray-400);
       padding: 2rem;
     }
+    .map-empty {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: .5rem;
+      padding: 3rem 2rem;
+    }
+    .map-empty .material-icons {
+      font-size: 2.5rem;
+      color: var(--gray-300);
+    }
 
     .toast {
       position: fixed;
@@ -278,6 +355,7 @@ import { CountryApiResponse, Destination } from '../../models/destination.model'
       from { transform: translateY(20px); opacity: 0; }
       to { transform: translateY(0); opacity: 1; }
     }
+    @keyframes spin { to { transform: rotate(360deg); } }
   `]
 })
 export class AdminDashboardComponent implements OnInit {
