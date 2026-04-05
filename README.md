@@ -3,7 +3,6 @@
 A full-stack travel destination planner application built with **Angular**, **Spring Boot**, and **PostgreSQL**. Browse, search, and bookmark travel destinations sourced from the REST Countries API, visualized on an interactive world map.
 
 ## Quick Start (Docker)
-
 ### Prerequisites
 
 - Docker & Docker Compose installed
