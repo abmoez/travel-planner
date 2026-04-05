@@ -84,7 +84,7 @@ Hovering over a destination pin highlights the country's geographic boundaries w
 
 Card-based grid of destinations with flags, region tags, and quick info. Supports search and pagination.
 
-![List View](screenshots/user_gridView.png)
+![List View](screenshots/user_gridview.png)
 
 ### User Dashboard — Wishlist View
 
@@ -197,7 +197,7 @@ Set this to `false` if you want to start with an empty catalog and add destinati
 
 ### External API
 
-Uses [REST Countries API](https://restcountries.com/v3.1) with field filtering:
+Uses [REST Countries API](https://restcountries.com/) with field filtering:
 
 ```
 GET https://restcountries.com/v3.1/all?fields=name,capital,region,subregion,population,currencies,flags,latlng
