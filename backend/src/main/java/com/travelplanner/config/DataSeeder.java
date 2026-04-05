@@ -29,6 +29,7 @@ public class DataSeeder implements CommandLineRunner {
     private final DestinationRepository destinationRepository;
     private final PasswordEncoder passwordEncoder;
     private final ObjectMapper objectMapper;
+    private final BlockedCountriesConfig blockedCountriesConfig;
 
     @Value("${seed.destinations.pre-populate}")
     private boolean seedDestinations;
@@ -77,6 +78,7 @@ public class DataSeeder implements CommandLineRunner {
                     is, new TypeReference<List<CountryApiResponse>>() {});
 
             List<Destination> destinations = countries.stream()
+                    .filter(c -> !blockedCountriesConfig.isBlocked(c.extractCountryName()))
                     .map(this::buildDestinationFromApi)
                     .toList();
 
