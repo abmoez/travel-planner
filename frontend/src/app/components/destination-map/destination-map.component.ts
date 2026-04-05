@@ -7,9 +7,16 @@ import * as L from 'leaflet';
 import * as topojson from 'topojson-client';
 import { Destination } from '../../models/destination.model';
 
-function createLabelIcon(name: string, highlighted = false): L.DivIcon {
+interface MarkerIconOptions {
+  highlighted?: boolean;
+  wishlisted?: boolean;
+}
+
+function createLabelIcon(name: string, opts: MarkerIconOptions = {}): L.DivIcon {
   const width = Math.max(name.length * 7 + 20, 60);
-  const cls = highlighted ? 'country-marker marker-highlighted' : 'country-marker';
+  let cls = 'country-marker';
+  if (opts.wishlisted) cls += ' marker-wishlisted';
+  if (opts.highlighted) cls += ' marker-highlighted';
   return L.divIcon({
     className: cls,
     html: `<div class="marker-pin"></div><span class="marker-label">${name}</span>`,
@@ -116,10 +123,11 @@ export class DestinationMapComponent implements AfterViewInit, OnChanges, OnDest
   mappableCount = 0;
 
   private map: L.Map | null = null;
+  private wishlistHighlightsLayer = L.layerGroup();
   private markersLayer = L.layerGroup();
-  private highlightLayer: L.GeoJSON | null = null;
+  private hoverHighlightLayer: L.GeoJSON | null = null;
   private activeMarker: L.Marker | null = null;
-  private activeDestName: string | null = null;
+  private activeDest: Destination | null = null;
 
   private static countriesGeoData: { features: any[] } | null = null;
   private static geoDataPromise: Promise<void> | null = null;
@@ -160,9 +168,13 @@ export class DestinationMapComponent implements AfterViewInit, OnChanges, OnDest
       maxZoom: 18
     }).addTo(this.map);
 
+    this.wishlistHighlightsLayer.addTo(this.map);
     this.markersLayer.addTo(this.map);
+
     this.mapLoading.set(false);
-    this.loadCountryBoundaries();
+    this.loadCountryBoundaries().then(() => {
+      this.updateWishlistHighlights();
+    });
     this.updateMarkers();
   }
 
@@ -184,63 +196,98 @@ export class DestinationMapComponent implements AfterViewInit, OnChanges, OnDest
     await DestinationMapComponent.geoDataPromise;
   }
 
-  private highlightCountry(countryName: string, marker: L.Marker): void {
-    if (this.activeDestName === countryName) return;
-    this.removeHighlight();
-
-    if (!DestinationMapComponent.countriesGeoData || !this.map) return;
+  private findCountryFeature(countryName: string): any | null {
+    if (!DestinationMapComponent.countriesGeoData) return null;
 
     const nameLower = countryName.toLowerCase();
-    const countryFeature = DestinationMapComponent.countriesGeoData.features.find((f: any) => {
+    return DestinationMapComponent.countriesGeoData.features.find((f: any) => {
       const geoName: string = (f.properties?.name || '').toLowerCase();
       return geoName === nameLower ||
              geoName.includes(nameLower) ||
              nameLower.includes(geoName);
-    });
-
-    if (countryFeature) {
-      this.highlightLayer = L.geoJSON(countryFeature, {
-        style: {
-          fillColor: '#818cf8',
-          fillOpacity: 0.2,
-          color: '#a5b4fc',
-          weight: 2,
-          opacity: 0.8
-        }
-      }).addTo(this.map);
-    }
-
-    marker.setIcon(createLabelIcon(countryName, true));
-    this.activeMarker = marker;
-    this.activeDestName = countryName;
+    }) || null;
   }
 
-  private removeHighlight(): void {
-    if (this.highlightLayer && this.map) {
-      this.map.removeLayer(this.highlightLayer);
-      this.highlightLayer = null;
+  private updateWishlistHighlights(): void {
+    this.wishlistHighlightsLayer.clearLayers();
+    if (!DestinationMapComponent.countriesGeoData || !this.map || this.adminMode) return;
+
+    const wishlisted = this.destinations.filter(
+      d => d.wantToVisit && d.latitude != null && d.longitude != null
+    );
+
+    for (const dest of wishlisted) {
+      const feature = this.findCountryFeature(dest.countryName);
+      if (feature) {
+        L.geoJSON(feature, {
+          style: {
+            fillColor: '#ef4444',
+            fillOpacity: 0.15,
+            color: '#f87171',
+            weight: 2,
+            opacity: 0.6
+          },
+          interactive: false
+        }).addTo(this.wishlistHighlightsLayer);
+      }
     }
-    if (this.activeMarker && this.activeDestName) {
-      this.activeMarker.setIcon(createLabelIcon(this.activeDestName, false));
+  }
+
+  private highlightCountry(dest: Destination, marker: L.Marker): void {
+    if (this.activeDest?.id === dest.id) return;
+    this.removeHoverHighlight();
+
+    if (this.map) {
+      const feature = this.findCountryFeature(dest.countryName);
+      if (feature) {
+        this.hoverHighlightLayer = L.geoJSON(feature, {
+          style: {
+            fillColor: '#818cf8',
+            fillOpacity: 0.2,
+            color: '#a5b4fc',
+            weight: 2,
+            opacity: 0.8
+          }
+        }).addTo(this.map);
+      }
+    }
+
+    marker.setIcon(createLabelIcon(dest.countryName, {
+      highlighted: true,
+      wishlisted: dest.wantToVisit
+    }));
+    this.activeMarker = marker;
+    this.activeDest = dest;
+  }
+
+  private removeHoverHighlight(): void {
+    if (this.hoverHighlightLayer && this.map) {
+      this.map.removeLayer(this.hoverHighlightLayer);
+      this.hoverHighlightLayer = null;
+    }
+    if (this.activeMarker && this.activeDest) {
+      this.activeMarker.setIcon(createLabelIcon(this.activeDest.countryName, {
+        wishlisted: this.activeDest.wantToVisit
+      }));
       this.activeMarker = null;
-      this.activeDestName = null;
+      this.activeDest = null;
     }
   }
 
   private updateMarkers(): void {
     this.markersLayer.clearLayers();
-    this.removeHighlight();
+    this.removeHoverHighlight();
 
     const mappable = this.destinations.filter(d => d.latitude != null && d.longitude != null);
     this.mappableCount = mappable.length;
 
     for (const dest of mappable) {
       const marker = L.marker([dest.latitude!, dest.longitude!], {
-        icon: createLabelIcon(dest.countryName)
+        icon: createLabelIcon(dest.countryName, { wishlisted: dest.wantToVisit })
       });
 
-      marker.on('mouseover', () => this.highlightCountry(dest.countryName, marker));
-      marker.on('mouseout', () => this.removeHighlight());
+      marker.on('mouseover', () => this.highlightCountry(dest, marker));
+      marker.on('mouseout', () => this.removeHoverHighlight());
 
       if ((!this.mini || this.singleMode) && !this.adminMode) {
         const popupContent = this.buildPopup(dest);
@@ -262,6 +309,8 @@ export class DestinationMapComponent implements AfterViewInit, OnChanges, OnDest
 
       marker.addTo(this.markersLayer);
     }
+
+    this.updateWishlistHighlights();
 
     if (mappable.length > 0 && this.map) {
       if (this.singleMode && mappable.length === 1) {

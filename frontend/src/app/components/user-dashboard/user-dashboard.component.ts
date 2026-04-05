@@ -606,6 +606,7 @@ export class UserDashboardComponent implements OnInit {
   ngOnInit(): void {
     this.loadDestinations();
     this.loadAllForMap();
+    this.loadWishlist();
   }
 
   switchView(mode: 'map' | 'list'): void {
@@ -706,22 +707,38 @@ export class UserDashboardComponent implements OnInit {
   toggleWishlist(event: Event, dest: Destination): void {
     event.stopPropagation();
     this.destService.toggleWantToVisit(dest.id).subscribe({
-      next: () => {
-        dest.wantToVisit = !dest.wantToVisit;
-        this.destinations.set([...this.destinations()]);
-      }
+      next: () => this.applyWishlistToggle(dest)
     });
   }
 
   onMapWishlistToggle(dest: Destination): void {
     this.destService.toggleWantToVisit(dest.id).subscribe({
-      next: () => {
-        const updated = this.mapDestinations().map(d =>
-          d.id === dest.id ? { ...d, wantToVisit: !d.wantToVisit } : d
-        );
-        this.mapDestinations.set(updated);
-      }
+      next: () => this.applyWishlistToggle(dest)
     });
+  }
+
+  private applyWishlistToggle(dest: Destination): void {
+    const newState = !dest.wantToVisit;
+
+    this.destinations.set(
+      this.destinations().map(d =>
+        d.id === dest.id ? { ...d, wantToVisit: newState } : d
+      )
+    );
+
+    this.mapDestinations.set(
+      this.mapDestinations().map(d =>
+        d.id === dest.id ? { ...d, wantToVisit: newState } : d
+      )
+    );
+
+    if (newState) {
+      if (!this.wishlist().some(d => d.id === dest.id)) {
+        this.wishlist.set([...this.wishlist(), { ...dest, wantToVisit: true }]);
+      }
+    } else {
+      this.wishlist.set(this.wishlist().filter(d => d.id !== dest.id));
+    }
   }
 
   formatPopulation(pop: number): string {
