@@ -84,7 +84,7 @@ Hovering over a destination pin highlights the country's geographic boundaries w
 
 Card-based grid of destinations with flags, region tags, and quick info. Supports search and pagination.
 
-![List View](screenshots/user_gridView.png)
+![List View](screenshots/user_gridview.png)
 
 ### User Dashboard — Wishlist View
 
