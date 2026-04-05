@@ -197,7 +197,7 @@ Set this to `false` if you want to start with an empty catalog and add destinati
 
 ### External API
 
-Uses [REST Countries API](https://restcountries.com/v3.1) with field filtering:
+Uses [REST Countries API](https://restcountries.com/) with field filtering:
 
 ```
 GET https://restcountries.com/v3.1/all?fields=name,capital,region,subregion,population,currencies,flags,latlng
