@@ -135,39 +135,6 @@
     },
     {
         "flags": {
-            "png": "https://flagcdn.com/w320/ru.png",
-            "svg": "https://flagcdn.com/ru.svg",
-            "alt": "The flag of Russia is composed of three equal horizontal bands of white, blue and red."
-        },
-        "name": {
-            "common": "Russia",
-            "official": "Russian Federation",
-            "nativeName": {
-                "rus": {
-                    "official": "Российская Федерация",
-                    "common": "Россия"
-                }
-            }
-        },
-        "currencies": {
-            "RUB": {
-                "name": "Russian ruble",
-                "symbol": "₽"
-            }
-        },
-        "latlng": [
-            60.0,
-            100.0
-        ],
-        "capital": [
-            "Moscow"
-        ],
-        "region": "Europe",
-        "subregion": "Eastern Europe",
-        "population": 146028325
-    },
-    {
-        "flags": {
             "png": "https://flagcdn.com/w320/tw.png",
             "svg": "https://flagcdn.com/tw.svg",
             "alt": "The flag of Taiwan has a red field with a dark blue rectangle in the canton, bearing a white sun with 12 triangular rays."

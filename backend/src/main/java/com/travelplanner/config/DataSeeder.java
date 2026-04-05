@@ -10,6 +10,8 @@ import com.travelplanner.repository.DestinationRepository;
 import com.travelplanner.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -27,6 +29,9 @@ public class DataSeeder implements CommandLineRunner {
     private final DestinationRepository destinationRepository;
     private final PasswordEncoder passwordEncoder;
     private final ObjectMapper objectMapper;
+
+    @Value("${seed.destinations.pre-populate}")
+    private boolean seedDestinations;
 
     @Override
     public void run(String... args) {
@@ -57,8 +62,8 @@ public class DataSeeder implements CommandLineRunner {
     }
 
     private void seedDestinations() {
-        if (destinationRepository.count() > 0) {
-            log.info("Destinations already exist, skipping seed");
+        if (!seedDestinations) {
+            log.info("Destinations pre-population is disabled, skipping seed");
             return;
         }
 
